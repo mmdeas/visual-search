@@ -88,7 +88,6 @@ def next():
 	if search.empty():
 		return
 	cost, node = search.get()
-	print cost, node
 	photo.put('green', node)
 	if node == target:
 		return
