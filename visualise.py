@@ -85,10 +85,8 @@ def calculateCost(costs, n1, n2):
 		c += abs(a - b)
 	return c + 1
 
-def next(searches, costs, colours, photo, root):
+def next(searches, costs, colours, photo, root, output):
 	for i in xrange(len(searches)):
-		if len(searches) == 0:
-			return
 		if i >= len(searches):
 			break
 		search = searches[i]
@@ -113,14 +111,18 @@ def next(searches, costs, colours, photo, root):
 				if search.isVisited(child):
 					continue
 				search.put(child, cost + calculateCost(costs, node, child))
-	root.after(1, next, searches, costs, colours, photo, root)
+	if len(searches) == 0:
+		if output is not None:
+			photo.write(output)
+		return
+	root.after(1, next, searches, costs, colours, photo, root, output)
 
 def colorify(node, colour, photo):
 	current = [int(x) for x in photo.get(node[0], node[1]).split(" ")]
 	r,g,b = [(current[i]+colour[i])/2 for i in xrange(3)]
 	photo.put("#%02x%02x%02x" % (r,g,b), node)
 
-def start(searches, colours, photo, costs=None):
+def start(searches, colours, photo, costs=None, output=None):
 	root = Tk()
 	root.title("Search: " + `photo`)
 	if type(photo) is str:
@@ -133,7 +135,7 @@ def start(searches, colours, photo, costs=None):
 	for search in searches:
 		if search.queue.empty:
 			search.put((randint(0, photo.width()-1), randint(0, photo.height())), 0)
-	next(searches, costs, colours, photo, root)
+	next(searches, costs, colours, photo, root, output)
 
 	root.mainloop()
 
@@ -142,9 +144,13 @@ if __name__ == '__main__':
 	if len(sys.argv) < 2:
 		print "usage: {0} image.gif".format(sys.argv[0])
 		exit(1)
+	try:
+		output = sys.argv[2]
+	except IndexError:
+		output = None
 
 	target = (0, 0)
-	searches = [LowestCost(target), LowestCost(target), DFS(target)]
+	searches = [BestFirst(target), BestFirst(target), Astar(target)]
 	colours = [(0,255,0), (255, 0, 0), (0, 0, 255)]
 
-	start(searches, colours, sys.argv[1])
+	start(searches, colours, sys.argv[1], output=output)
