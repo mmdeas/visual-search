@@ -69,9 +69,9 @@ class BestFirst(Search):
 	def h(self, node):
 		return abs(node[0] - target[0]) + abs(node[1] - target[1])
 
-class LowestCost(Search):
+class UniformCost(Search):
 	def __init__(self, target):
-		super(LowestCost, self).__init__(target)
+		super(UniformCost, self).__init__(target)
 		self.queue = Queue.PriorityQueue()
 		self.visited = set()
 	def put(self, node, cost):
@@ -134,7 +134,8 @@ def start(searches, colours, photo, costs=None, output=None):
 	canvas.pack();
 	for search in searches:
 		if search.queue.empty:
-			search.put((randint(0, photo.width()-1), randint(0, photo.height())), 0)
+			# search.put((randint(0, photo.width()-1), randint(0, photo.height())), 0)
+			search.put((photo.width()/2, photo.height()/2), 0)
 	next(searches, costs, colours, photo, root, output)
 
 	root.mainloop()
@@ -150,7 +151,7 @@ if __name__ == '__main__':
 		output = None
 
 	target = (0, 0)
-	searches = [BestFirst(target), BestFirst(target), Astar(target)]
+	searches = [BestFirst(target), UniformCost(target), Astar(target)]
 	colours = [(0,255,0), (255, 0, 0), (0, 0, 255)]
 
 	start(searches, colours, sys.argv[1], output=output)
