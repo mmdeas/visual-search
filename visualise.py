@@ -6,10 +6,18 @@ from random import randint
 
 class Search(object):
 	"""Abstract Search object from which to inherit."""
-	def __init__(self, target):
+	def __init__(self, target, name=None):
 		super(Search, self).__init__()
 		self.target = target
 		self.visited = set()
+		if name is None:
+			self.name = type(self).__name__
+		else:
+			self.name = name
+	def __str__(self):
+		return self.name
+	def __repr__(self):
+		return self.name
 	def put(self, node, cost):
 		pass
 	def get(self):
@@ -30,7 +38,7 @@ class BFS(Search):
 		self.queue = Queue.Queue()
 		self.visited = set()
 	def put(self, node, cost):
-		self.queue.put((0, node, 0))
+		self.queue.put((0, node, cost))
 
 class DFS(BFS):
 	"""DFS search across image."""
@@ -79,14 +87,24 @@ def calculateCost(costs, n1, n2):
 
 def next(searches, costs, colours, photo, root):
 	for i in xrange(len(searches)):
+		if len(searches) == 0:
+			return
+		if i >= len(searches):
+			break
 		search = searches[i]
 		colour = colours[i]
 		if search.empty():
-			return
+			print `search`, 'failed to find the target.'
+			searches.pop(i)
+			colours.pop(i)
+			continue
 		cost, node = search.get()
 		colorify(node, colour, photo)
 		if node == target:
-			return
+			print `search`, 'found the target with a path of cost', cost
+			searches.pop(i)
+			colours.pop(i)
+			continue
 		for x in [-1, 0, 1]:
 			for y in [-1, 0, 1]:
 				child = (node[0]+x, node[1]+y)
@@ -126,10 +144,7 @@ if __name__ == '__main__':
 		exit(1)
 
 	target = (0, 0)
-	search = Astar(target)
-	search2 = LowestCost(target);
-	search3 = DFS(target);
-	searches = [search, search2, search3];
-	colours = [(0,255,0), (255,0,0), (0,0,255)]
+	searches = [LowestCost(target), LowestCost(target), DFS(target)]
+	colours = [(0,255,0), (255, 0, 0), (0, 0, 255)]
 
 	start(searches, colours, sys.argv[1])
