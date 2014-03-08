@@ -15,9 +15,9 @@ class Search(object):
 		else:
 			self.name = name
 	def __str__(self):
-		return self.name
+		return ''.join(["<",self.name," ",`len(self.visited)`,">"])
 	def __repr__(self):
-		return self.name
+		return self.__str__()
 	def put(self, node, cost):
 		pass
 	def get(self):
@@ -30,6 +30,8 @@ class Search(object):
 		return self.queue.empty()
 	def isVisited(self, node):
 		return (node in self.visited)
+	def isTarget(self, node):
+		return node == self.target
 
 class BFS(Search):
 	"""BFS search across image."""
@@ -77,6 +79,33 @@ class UniformCost(Search):
 	def put(self, node, cost):
 		self.queue.put((cost, node, cost))
 
+class TwoWayUniformCost(Search):
+	"""Two Uniform Cost algorithms with one starting at the target and stopping when they meet."""
+	def __init__(self, target):
+		super(TwoWayUniformCost, self).__init__(target)
+		self.active = (Queue.PriorityQueue(), set(), 'start')
+		self.inactive = (Queue.PriorityQueue(), set(), 'target')
+		self.inactive[0].put((0, target, 0))
+	def __repr__(self):
+		return ''.join(["<",self.name," ",`len(self.active[1]) + len(self.inactive[1])`,">"])
+	def put(self, node, cost):
+		self.active[0].put((cost, node, cost))
+	def get(self):
+		self.active, self.inactive = self.inactive, self.active
+		node = self.active[0].get()
+		while node[1] in self.active[1]:
+			node = self.active[0].get()
+		self.active[1].add(node[1])
+		return node[2], node[1]
+	def isVisited(self, node):
+		return node in self.active[1]
+	def isTarget(self, node):
+		return node in self.inactive[1]
+	def empty(self):
+		return self.active[0].empty()
+
+
+
 def calculateCost(costs, n1, n2):
 	c = 0;
 	for i in xrange(3):
@@ -98,19 +127,19 @@ def next(searches, costs, colours, photo, root, output):
 			continue
 		cost, node = search.get()
 		colorify(node, colour, photo)
-		if node == target:
+		if search.isTarget(node):
 			print `search`, 'found the target with a path of cost', cost
 			searches.pop(i)
 			colours.pop(i)
 			continue
-		for x in [-1, 0, 1]:
-			for y in [-1, 0, 1]:
-				child = (node[0]+x, node[1]+y)
-				if child[0] < 0 or child[1] < 0 or child[0] > costs.width()-1 or child[1] > costs.height()-1:
-					continue
-				if search.isVisited(child):
-					continue
-				search.put(child, cost + calculateCost(costs, node, child))
+		for x,y in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+			child = (node[0]+x, node[1]+y)
+			if child[0] < 0 or child[1] < 0 or child[0] > costs.width()-1 or child[1] > costs.height()-1:
+				continue
+			if search.isVisited(child):
+				continue
+			search.put(child, cost + calculateCost(costs, node, child))
+			# colorify(child, (255,255,255), photo)
 	if len(searches) == 0:
 		if output is not None:
 			photo.write(output)
@@ -133,9 +162,9 @@ def start(searches, colours, photo, costs=None, output=None):
 	canvas.create_image(0, 0, image=photo, anchor=NW)
 	canvas.pack();
 	for search in searches:
-		if search.queue.empty:
+		if search.empty():
 			# search.put((randint(0, photo.width()-1), randint(0, photo.height())), 0)
-			search.put((photo.width()/2, photo.height()/2), 0)
+			search.put((photo.width()-1, photo.height()-1), 0)
 	next(searches, costs, colours, photo, root, output)
 
 	root.mainloop()
@@ -151,7 +180,7 @@ if __name__ == '__main__':
 		output = None
 
 	target = (0, 0)
-	searches = [BestFirst(target), UniformCost(target), Astar(target)]
-	colours = [(0,255,0), (255, 0, 0), (0, 0, 255)]
+	searches = [UniformCost(target), Astar(target), TwoWayUniformCost(target)]
+	colours = [(0,255,0), (255, 0, 0), (0, 0, 255), (0, 255, 255)]
 
 	start(searches, colours, sys.argv[1], output=output)
