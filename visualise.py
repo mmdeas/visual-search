@@ -27,7 +27,7 @@ class Search(object):
 		self.visited.add(node[1])
 		return node[2], node[1]
 	def empty(self):
-		self.queue.empty()
+		return self.queue.empty()
 	def isVisited(self, node):
 		return (node in self.visited)
 
