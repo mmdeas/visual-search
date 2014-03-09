@@ -3,6 +3,7 @@
 from Tkinter import *
 import Queue
 from random import randint
+from itertools import product
 
 class Search(object):
 	"""Abstract Search object from which to inherit."""
@@ -180,7 +181,7 @@ def next(searches, costs, colours, photo, root, output):
 			searches.pop(i)
 			colours.pop(i)
 			continue
-		for x,y in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+		for x,y in product((-1, 0, 1), (-1, 0, 1)):
 			child = (node[0]+x, node[1]+y)
 			if child[0] < 0 or child[1] < 0 or child[0] > costs.width()-1 or child[1] > costs.height()-1:
 				continue
@@ -231,7 +232,7 @@ if __name__ == '__main__':
 		output = None
 
 	target = (0, 0)
-	searches = [Astar(target), Astar2(target), Bidirectional(target)]
+	searches = [Astar(target), Bidirectional(target), UniformCost(target), Random(target)]
 	colours = [(0,255,0), (255, 0, 0), (0, 0, 255), (0, 255, 255), (255, 255, 0)]
 
 	start(searches, colours, sys.argv[1], output=output)
