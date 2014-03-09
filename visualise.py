@@ -58,12 +58,7 @@ class Astar(Search):
 	def put(self, node, cost):
 		self.queue.put((cost + self.h(node), node, cost))
 	def h(self, node):
-		return abs(node[0] - self.target[0]) + abs(node[1] - self.target[1])
-
-class Astar2(Astar):
-	"""Astar with different heuristic."""
-	def h(self, node):
-		return abs(node[0] - self.target[0]) + abs(node[1] - self.target[1]) + calculateCost(self.costs, node, self.target)
+		return calculateCost(self.costs, node, self.target)
 
 class BestFirst(Search):
 	"""Besf-first search across image."""
@@ -165,7 +160,7 @@ def calculateCost(costs, n1, n2):
 		a = int(costs.get(n1[0], n1[1]).split(" ")[i])
 		b = int(costs.get(n2[0], n2[1]).split(" ")[i])
 		c += abs(a - b)
-	return c + 1
+	return c + abs(n1[0] - n2[0]) + abs(n1[1] - n2[1])
 
 def next(searches, costs, colours, photo, root, output):
 	for i in xrange(len(searches)):
