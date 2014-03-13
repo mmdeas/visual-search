@@ -164,35 +164,36 @@ def calculateCost(costs, n1, n2):
 	return c + abs(n1[0] - n2[0]) + abs(n1[1] - n2[1])
 
 def next(searches, costs, colours, photo, root, output):
-	for i in xrange(len(searches)):
-		if i >= len(searches):
-			break
-		search = searches[i]
-		colour = colours[i]
-		if search.empty():
-			print `search`, 'failed to find the target.'
-			searches.pop(i)
-			colours.pop(i)
-			continue
-		cost, node = search.get()
-		colorify(node, colour, photo)
-		if search.isTarget(node):
-			print `search`, 'found the target with a path of cost', cost
-			searches.pop(i)
-			colours.pop(i)
-			continue
-		for x,y in product((-1, 0, 1), (-1, 0, 1)):
-			child = (node[0]+x, node[1]+y)
-			if child[0] < 0 or child[1] < 0 or child[0] > costs.width()-1 or child[1] > costs.height()-1:
+	for narf in xrange(10):
+		for i in xrange(len(searches)):
+			if i >= len(searches):
+				break
+			search = searches[i]
+			colour = colours[i]
+			if search.empty():
+				print `search`, 'failed to find the target.'
+				searches.pop(i)
+				colours.pop(i)
 				continue
-			if search.isVisited(child):
+			cost, node = search.get()
+			colorify(node, colour, photo)
+			if search.isTarget(node):
+				print `search`, 'found the target with a path of cost', cost
+				searches.pop(i)
+				colours.pop(i)
 				continue
-			search.put(child, cost + calculateCost(costs, node, child))
-			# colorify(child, (255,255,255), photo)
-	if len(searches) == 0:
-		if output is not None:
-			photo.write(output)
-		return
+			for x,y in product((-1, 0, 1), (-1, 0, 1)):
+				child = (node[0]+x, node[1]+y)
+				if child[0] < 0 or child[1] < 0 or child[0] > costs.width()-1 or child[1] > costs.height()-1:
+					continue
+				if search.isVisited(child):
+					continue
+				search.put(child, cost + calculateCost(costs, node, child))
+				# colorify(child, (255,255,255), photo)
+		if len(searches) == 0:
+			if output is not None:
+				photo.write(output)
+			return
 	root.after(1, next, searches, costs, colours, photo, root, output)
 
 def colorify(node, colour, photo):
@@ -216,7 +217,7 @@ def start(searches, colours, photo, costs=None, output=None):
 		search.costs = costs
 		if search.empty():
 			# search.put((randint(0, photo.width()-1), randint(0, photo.height())), 0)
-			search.put((photo.width()-1, photo.height()-1), 0)
+			search.put((photo.width()/2, photo.height()/2), 0)
 	next(searches, costs, colours, photo, root, output)
 
 	root.mainloop()
